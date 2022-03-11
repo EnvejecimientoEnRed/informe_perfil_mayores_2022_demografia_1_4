@@ -24,8 +24,6 @@ export function initChart(iframe) {
     d3.csv('https://raw.githubusercontent.com/CarlosMunozDiazCSIC/informe_perfil_mayores_2022_demografia_1_4/main/data/diferencias_hombres_mujeres_2021.csv', function(error,data) {
         if (error) throw error;
 
-        console.log(data);
-
         let margin = {top: 10, right: 20, bottom: 40, left: 60},
             width = document.getElementById('chart').clientWidth - margin.left - margin.right,
             height = document.getElementById('chart').clientHeight - margin.top - margin.bottom;
@@ -58,30 +56,42 @@ export function initChart(iframe) {
         svg.append("g")
             .call(d3.axisLeft(y));
 
-        svg.selectAll("mybar")
+        function init() {
+            svg.selectAll("bars")
             .data(data)
             .enter()
             .append("rect")
-              .attr("x", function(d) { return x(d.Edad); })
-              .attr("y", function(d) { return y(d.dif_grupo_2); })
-              .attr("width", x.bandwidth())
-              .attr("height", function(d) { return height - y(d.dif_grupo_2); })
-              .attr("fill", function(d) {
-                  if (d.grupo_sexo == 'hombres') {
-                    return COLOR_PRIMARY_1;
-                  } else {
-                    return COLOR_COMP_1;
-                  }
-              })
-
-        function init() {
-
+            .attr('class', 'bars')
+            .attr("x", function(d) { return x(d.Edad); })
+            .attr("y", function(d) { return y(0); })
+            .attr("width", x.bandwidth())
+            .attr("height", function(d) { return height - y(0); })
+            .attr("fill", function(d) {
+                if (d.grupo_sexo == 'hombres') {
+                return COLOR_PRIMARY_1;
+                } else {
+                return COLOR_COMP_1;
+                }
+            })
+            .transition()
+            .delay(function(d,i){ return 25*i; })
+            .duration(2000)     
+            .attr("y", function(d) { return y(d.dif_grupo_2); })
+            .attr("height", function(d) { return height - y(d.dif_grupo_2); });
         }
 
         function animateChart() {
-
+            svg.selectAll(".bars")
+                .attr("x", function(d) { return x(d.Edad); })
+                .attr("y", function(d) { return y(0); })
+                .attr("width", x.bandwidth())
+                .attr("height", function(d) { return height - y(0); })
+                .transition()
+                .delay(function(d,i){ return 25*i; })
+                .duration(2000)     
+                .attr("y", function(d) { return y(d.dif_grupo_2); })
+                .attr("height", function(d) { return height - y(d.dif_grupo_2); });
         }
-
 
         /////
         /////
@@ -120,5 +130,5 @@ export function initChart(iframe) {
 
         //Altura del frame
         setChartHeight(iframe);
-    });    
+    });
 }
