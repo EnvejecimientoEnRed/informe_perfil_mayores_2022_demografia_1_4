@@ -1,7 +1,7 @@
 //Desarrollo de las visualizaciones
 import * as d3 from 'd3';
-import { numberWithCommas2 } from '../helpers';
-//import { getInTooltip, getOutTooltip, positionTooltip } from './modules/tooltip';
+import { numberWithCommas3 } from '../helpers';
+import { getInTooltip, getOutTooltip, positionTooltip } from '../modules/tooltip';
 import { setChartHeight } from '../modules/height';
 import { setChartCanvas, setChartCanvasImage, setCustomCanvas, setChartCustomCanvasImage } from '../modules/canvas-image';
 import { setRRSSLinks } from '../modules/rrss';
@@ -18,6 +18,7 @@ COLOR_ANAG__PRIM_1 = '#BA9D5F',
 COLOR_ANAG_PRIM_2 = '#9E6C51',
 COLOR_ANAG_PRIM_3 = '#9E3515',
 COLOR_ANAG_COMP_1 = '#1C5A5E';
+let tooltip = d3.select('#tooltip');
 
 export function initChart(iframe) {
     //Lectura de datos
@@ -43,6 +44,7 @@ export function initChart(iframe) {
         let xAxis = function(g){
             g.call(d3.axisBottom(x).tickValues(x.domain().filter(function(d,i){ return !(i%10)})));
             g.call(function(g){g.selectAll('text').attr("transform", "translate(-5,0)rotate(-30)").style("text-anchor", "end")});
+            svg.call(function(g){g.selectAll('.tick line').remove()});
         }
         
         svg.append("g")
@@ -53,15 +55,29 @@ export function initChart(iframe) {
             .domain([0, 60000])
             .range([ height, 0]);
 
+        let yAxis = function(svg) {
+            svg.call(d3.axisLeft(y).ticks(6).tickFormat(function(d) { return numberWithCommas3(d); }));
+            svg.call(function(g){
+                g.selectAll('.tick line')
+                    .attr('class', function(d,i) {
+                        if (d == 0) {
+                            return 'line-special';
+                        }
+                    })
+                    .attr('x1', '0')
+                    .attr('x2', `${width}`)
+            });
+        }
+
         svg.append("g")
-            .call(d3.axisLeft(y));
+            .call(yAxis);
 
         function init() {
             svg.selectAll("bars")
             .data(data)
             .enter()
             .append("rect")
-            .attr('class', 'bars')
+            .attr('class', 'rect')
             .attr("x", function(d) { return x(d.Edad); })
             .attr("y", function(d) { return y(0); })
             .attr("width", x.bandwidth())
@@ -73,6 +89,40 @@ export function initChart(iframe) {
                 return COLOR_COMP_1;
                 }
             })
+            .on('mouseover', function(d,i,e) {
+                //Opacidad de las barras
+                let bars = svg.selectAll('.rect');  
+                bars.each(function() {
+                    this.style.opacity = '0.4';
+                });
+                this.style.opacity = '1';
+
+                //Texto
+                let html = '';
+                if(+d.Hombres > +d.Mujeres) {
+                    html = '<p class="chart__tooltip--title">' + d.Edad + '</p>' + 
+                    '<p class="chart__tooltip--text">A esta edad hay ' + numberWithCommas3(d.dif_grupo_2) + ' más hombres que mujeres</p>';
+                } else {
+                    html = '<p class="chart__tooltip--title">' + d.Edad + '</p>' + 
+                    '<p class="chart__tooltip--text">A esta edad hay ' + numberWithCommas3(d.dif_grupo_2) + ' más mujeres que hombres</p>';
+                }
+        
+                tooltip.html(html);
+
+                //Tooltip
+                positionTooltip(window.event, tooltip);
+                getInTooltip(tooltip);
+            })
+            .on('mouseout', function(d,i,e) {
+                //Quitamos los estilos de la línea
+                let bars = svg.selectAll('.rect');
+                bars.each(function() {
+                    this.style.opacity = '1';
+                });
+            
+                //Quitamos el tooltip
+                getOutTooltip(tooltip); 
+            })
             .transition()
             .delay(function(d,i){ return 25*i; })
             .duration(2000)     
@@ -81,7 +131,7 @@ export function initChart(iframe) {
         }
 
         function animateChart() {
-            svg.selectAll(".bars")
+            svg.selectAll(".rect")
                 .attr("x", function(d) { return x(d.Edad); })
                 .attr("y", function(d) { return y(0); })
                 .attr("width", x.bandwidth())
