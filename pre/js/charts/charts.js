@@ -3,24 +3,16 @@ import * as d3 from 'd3';
 import { numberWithCommas3 } from '../helpers';
 import { getInTooltip, getOutTooltip, positionTooltip } from '../modules/tooltip';
 import { setChartHeight } from '../modules/height';
-import { setChartCanvas, setChartCanvasImage, setCustomCanvas, setChartCustomCanvasImage } from '../modules/canvas-image';
+import { setChartCanvas, setChartCanvasImage } from '../modules/canvas-image';
 import { setRRSSLinks } from '../modules/rrss';
 import { setFixedIframeUrl } from './chart_helpers';
 
 //Colores fijos
-const COLOR_PRIMARY_1 = '#F8B05C', 
-COLOR_PRIMARY_2 = '#E37A42',
-COLOR_COMP_1 = '#528FAD', 
-COLOR_COMP_2 = '#AADCE0',
-COLOR_GREY_1 = '#D6D6D6', 
-COLOR_GREY_2 = '#A3A3A3',
-COLOR_ANAG__PRIM_1 = '#BA9D5F', 
-COLOR_ANAG_PRIM_2 = '#9E6C51',
-COLOR_ANAG_PRIM_3 = '#9E3515',
-COLOR_ANAG_COMP_1 = '#1C5A5E';
+const COLOR_PRIMARY_1 = '#F8B05C',
+COLOR_COMP_1 = '#528FAD';
 let tooltip = d3.select('#tooltip');
 
-export function initChart(iframe) {
+export function initChart() {
     //Lectura de datos
     d3.csv('https://raw.githubusercontent.com/CarlosMunozDiazCSIC/informe_perfil_mayores_2022_demografia_1_4/main/data/diferencias_hombres_mujeres_2021.csv', function(error,data) {
         if (error) throw error;
@@ -74,60 +66,60 @@ export function initChart(iframe) {
 
         function init() {
             svg.selectAll("bars")
-            .data(data)
-            .enter()
-            .append("rect")
-            .attr('class', 'rect')
-            .attr("x", function(d) { return x(d.Edad); })
-            .attr("y", function(d) { return y(0); })
-            .attr("width", x.bandwidth())
-            .attr("height", function(d) { return height - y(0); })
-            .attr("fill", function(d) {
-                if (d.grupo_sexo == 'hombres') {
-                return COLOR_PRIMARY_1;
-                } else {
-                return COLOR_COMP_1;
-                }
-            })
-            .on('mouseover', function(d,i,e) {
-                //Opacidad de las barras
-                let bars = svg.selectAll('.rect');  
-                bars.each(function() {
-                    this.style.opacity = '0.4';
-                });
-                this.style.opacity = '1';
-
-                //Texto
-                let html = '';
-                if(+d.Hombres > +d.Mujeres) {
-                    html = '<p class="chart__tooltip--title">' + d.Edad + '</p>' + 
-                    '<p class="chart__tooltip--text">A esta edad hay ' + numberWithCommas3(d.dif_grupo_2) + ' más hombres que mujeres</p>';
-                } else {
-                    html = '<p class="chart__tooltip--title">' + d.Edad + '</p>' + 
-                    '<p class="chart__tooltip--text">A esta edad hay ' + numberWithCommas3(d.dif_grupo_2) + ' más mujeres que hombres</p>';
-                }
-        
-                tooltip.html(html);
-
-                //Tooltip
-                positionTooltip(window.event, tooltip);
-                getInTooltip(tooltip);
-            })
-            .on('mouseout', function(d,i,e) {
-                //Quitamos los estilos de la línea
-                let bars = svg.selectAll('.rect');
-                bars.each(function() {
+                .data(data)
+                .enter()
+                .append("rect")
+                .attr('class', 'rect')
+                .attr("x", function(d) { return x(d.Edad); })
+                .attr("y", function(d) { return y(0); })
+                .attr("width", x.bandwidth())
+                .attr("height", function(d) { return height - y(0); })
+                .attr("fill", function(d) {
+                    if (d.grupo_sexo == 'hombres') {
+                    return COLOR_PRIMARY_1;
+                    } else {
+                    return COLOR_COMP_1;
+                    }
+                })
+                .on('mouseover', function(d,i,e) {
+                    //Opacidad de las barras
+                    let bars = svg.selectAll('.rect');  
+                    bars.each(function() {
+                        this.style.opacity = '0.4';
+                    });
                     this.style.opacity = '1';
-                });
+
+                    //Texto
+                    let html = '';
+                    if(+d.Hombres > +d.Mujeres) {
+                        html = '<p class="chart__tooltip--title">' + d.Edad + '</p>' + 
+                        '<p class="chart__tooltip--text">A esta edad hay <b>' + numberWithCommas3(d.dif_grupo_2) + '</b> más hombres que mujeres</p>';
+                    } else {
+                        html = '<p class="chart__tooltip--title">' + d.Edad + '</p>' + 
+                        '<p class="chart__tooltip--text">A esta edad hay <b>' + numberWithCommas3(d.dif_grupo_2) + '</b> más mujeres que hombres</p>';
+                    }
             
-                //Quitamos el tooltip
-                getOutTooltip(tooltip); 
-            })
-            .transition()
-            .delay(function(d,i){ return 25*i; })
-            .duration(2000)     
-            .attr("y", function(d) { return y(d.dif_grupo_2); })
-            .attr("height", function(d) { return height - y(d.dif_grupo_2); });
+                    tooltip.html(html);
+
+                    //Tooltip
+                    positionTooltip(window.event, tooltip);
+                    getInTooltip(tooltip);
+                })
+                .on('mouseout', function(d,i,e) {
+                    //Quitamos los estilos de la línea
+                    let bars = svg.selectAll('.rect');
+                    bars.each(function() {
+                        this.style.opacity = '1';
+                    });
+                
+                    //Quitamos el tooltip
+                    getOutTooltip(tooltip); 
+                })
+                .transition()
+                .delay(function(d,i){ return 25*i; })
+                .duration(2000)     
+                .attr("y", function(d) { return y(d.dif_grupo_2); })
+                .attr("height", function(d) { return height - y(d.dif_grupo_2); });
         }
 
         function animateChart() {
@@ -153,6 +145,10 @@ export function initChart(iframe) {
         //Animación del gráfico
         document.getElementById('replay').addEventListener('click', function() {
             animateChart();
+
+            setTimeout(() => {
+                setChartCanvas();
+            }, 4000);
         });
 
         /////
@@ -168,17 +164,17 @@ export function initChart(iframe) {
         setRRSSLinks('diferencia_poblacion_sexo');
 
         //Captura de pantalla de la visualización
-        setChartCanvas();
-        setCustomCanvas();
+        setTimeout(() => {
+            setChartCanvas();
+        }, 4000);
 
         let pngDownload = document.getElementById('pngImage');
 
         pngDownload.addEventListener('click', function(){
             setChartCanvasImage('diferencia_poblacion_sexo');
-            setChartCustomCanvasImage('diferencia_poblacion_sexo');
         });
 
         //Altura del frame
-        setChartHeight(iframe);
+        setChartHeight();
     });
 }
