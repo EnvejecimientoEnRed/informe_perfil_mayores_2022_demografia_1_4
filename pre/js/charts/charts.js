@@ -17,7 +17,7 @@ export function initChart() {
     d3.csv('https://raw.githubusercontent.com/CarlosMunozDiazCSIC/informe_perfil_mayores_2022_demografia_1_4/main/data/diferencias_hombres_mujeres_2021.csv', function(error,data) {
         if (error) throw error;
 
-        let margin = {top: 10, right: 20, bottom: 40, left: 60},
+        let margin = {top: 12.5, right: 20, bottom: 25, left: 60},
             width = document.getElementById('chart').clientWidth - margin.left - margin.right,
             height = document.getElementById('chart').clientHeight - margin.top - margin.bottom;
 
