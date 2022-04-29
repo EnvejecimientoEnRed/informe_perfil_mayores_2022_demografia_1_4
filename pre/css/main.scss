@@ -111,6 +111,7 @@ button {
             display: flex;
             flex-wrap: wrap;
             
+            width: calc(100% - 141px);
 
             &--item {
                 position: relative;
@@ -480,6 +481,14 @@ button {
         .chart {
             &__options {
                 justify-content: center;
+            }
+
+            &__logics {
+                flex-direction: column;
+            }
+
+            &__legend {
+                width: 100%;
             }
         }
     }
