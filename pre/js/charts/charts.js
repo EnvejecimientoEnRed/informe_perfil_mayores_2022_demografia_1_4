@@ -30,12 +30,11 @@ export function initChart() {
 
         let x = d3.scaleBand()
             .range([ 0, width ])
-            .domain(data.map(function(d) { return d.Edad; }))
+            .domain(data.map(function(d) { return d.edades; }))
             .padding(0.2);
 
         let xAxis = function(g){
             g.call(d3.axisBottom(x).tickValues(x.domain().filter(function(d,i){ return !(i%10)})));
-            g.call(function(g){g.selectAll('text').attr("transform", "translate(-5,0)rotate(-30)").style("text-anchor", "end")});
             svg.call(function(g){g.selectAll('.tick line').remove()});
         }
         
@@ -70,7 +69,7 @@ export function initChart() {
                 .enter()
                 .append("rect")
                 .attr('class', 'rect')
-                .attr("x", function(d) { return x(d.Edad); })
+                .attr("x", function(d) { return x(d.edades); })
                 .attr("y", function(d) { return y(0); })
                 .attr("width", x.bandwidth())
                 .attr("height", function(d) { return height - y(0); })
